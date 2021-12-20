@@ -14,19 +14,19 @@ import (
 	"time"
 
 	"github.com/linkedin/goavro"
-	kafka "github.com/segmentio/kafka-go"
+	"github.com/segmentio/kafka-go"
 
 	appctx "github.com/brave-intl/bat-go/utils/context"
 	errorutils "github.com/brave-intl/bat-go/utils/errors"
 	"github.com/brave-intl/bat-go/utils/logging"
 )
 
-type KafkaRead struct {
+type kafkaRead struct {
 	kafkaReader *kafka.Reader
 	kafkaDialer *kafka.Dialer
 }
 
-func NewKafkaReader(ctx context.Context, groupID string, topic string) (*KafkaRead, error) {
+func NewKafkaReader(ctx context.Context, groupID string, topic string) (*kafkaRead, error) {
 	_, logger := logging.SetupLogger(ctx)
 
 	dialer, x509Cert, err := TLSDialer()
@@ -44,18 +44,18 @@ func NewKafkaReader(ctx context.Context, groupID string, topic string) (*KafkaRe
 		GroupID:       groupID,
 		Topic:         topic,
 		Dialer:        dialer,
-		StartOffset:   0,
-		RetentionTime: 2 * time.Hour,
+		StartOffset:   kafka.FirstOffset,
+		RetentionTime: 24 * time.Hour,
 		Logger:        kafka.LoggerFunc(logger.Printf), // FIXME
 	})
 
-	return &KafkaRead{
+	return &kafkaRead{
 		kafkaReader: kafkaReader,
 		kafkaDialer: dialer,
 	}, nil
 }
 
-func (k *KafkaRead) ReadMessage(ctx context.Context) (kafka.Message, error) {
+func (k *kafkaRead) ReadMessage(ctx context.Context) (kafka.Message, error) {
 	return k.kafkaReader.ReadMessage(ctx)
 }
 
